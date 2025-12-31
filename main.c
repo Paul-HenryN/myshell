@@ -4,7 +4,7 @@
 int main(void) {
   char input[256];
 
-  do {
+  while (1) {
     printf("myshell> ");
     char *res = fgets(input, sizeof(input), stdin);
 
@@ -16,10 +16,29 @@ int main(void) {
 
     if (input[len - 1] == '\n') {
       input[len - 1] = '\0';
+      len--;
     }
 
-    printf("%s\n", input);
-  } while (!(strlen(input) == 4 && strncmp(input, "exit", 4) == 0));
+    if (len == 4 && strcmp(input, "exit") == 0) {
+      break;
+    }
+
+    char *tokens[20];
+    int ntokens = 0;
+
+    char *token = strtok(input, " ");
+    while (token != NULL) {
+      tokens[ntokens] = token;
+      token = strtok(NULL, " ");
+      ntokens++;
+    }
+
+    for (int i = 0; i < ntokens; i++) {
+      printf("->%s", tokens[i]);
+    }
+
+    printf("\n");
+  };
 
   return 0;
 }
