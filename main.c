@@ -1,5 +1,8 @@
+#include <errno.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 int main(void) {
   char input[256];
@@ -27,17 +30,40 @@ int main(void) {
     int ntokens = 0;
 
     char *token = strtok(input, " ");
+
+    if (token == NULL) {
+      continue;
+    }
     while (token != NULL) {
       tokens[ntokens] = token;
       token = strtok(NULL, " ");
       ntokens++;
     }
+    tokens[ntokens] = NULL;
 
-    for (int i = 0; i < ntokens; i++) {
-      printf("->%s", tokens[i]);
+    pid_t pid, w;
+    int wstatus;
+
+    pid = fork();
+
+    switch (pid) {
+    case -1:
+      perror("fork failed");
+      exit(EXIT_FAILURE);
+    case 0:
+      execvp(tokens[0], tokens);
+      perror("");
+      _exit(EXIT_FAILURE);
+    default:
+      do {
+        w = waitpid(pid, &wstatus, WUNTRACED);
+
+        if (w == -1) {
+          perror("waitpid");
+          exit(EXIT_FAILURE);
+        }
+      } while (!WIFEXITED(wstatus));
     }
-
-    printf("\n");
   };
 
   return 0;
